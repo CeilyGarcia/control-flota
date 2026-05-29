@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Control de Flota</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: Arial; margin: 0; padding: 20px; background: #f0f2f5; }
+        .container { max-width: 1300px; margin: auto; background: white; padding: 20px; border-radius: 10px; }
+        #map { height: 450px; width: 100%; margin: 20px 0; border-radius: 10px; }
+        input, button { padding: 10px; margin: 5px; border-radius: 5px; border: 1px solid #ddd; }
+        button { background: #007bff; color: white; border: none; cursor: pointer; }
+        .btn-danger { background: #dc3545; }
+        .btn-success { background: #28a745; }
+        .unidad-card { background: #e9ecef; margin: 8px 0; padding: 10px; border-radius: 5px; display: inline-block; width: 100%; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; padding-bottom: 10px; margin-bottom: 20px; }
+        h3 { margin: 15px 0 5px 0; }
+        .error { color: red; }
+        .feature-badge { background: #28a745; color: white; padding: 5px 10px; border-radius: 20px; font-size: 12px; display: inline-block; margin-left: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- PANTALLA LOGIN -->
+        <div id="login">
+            <h1>🚍 Sistema de Control de Flota</h1>
+            <h2>Iniciar Sesión</h2>
+            <input type="text" id="username" placeholder="Usuario">
+            <input type="password" id="password" placeholder="Contraseña">
+            <button onclick="login()">Ingresar</button>
+            <div id="loginMensaje" class="error"></div>
+        </div>
+
+        <!-- PANTALLA PRINCIPAL -->
+        <div id="app" style="display:none">
+            <div class="top-bar">
+                <button class="btn-danger" onclick="cerrarSesion()">🚪 Cerrar Sesión</button>
+            </div>
+            
+            <div>
+                <button onclick="centrarMapa()">🎯 Centrar mapa</button>
+            </div>
+            
+            <h3>➕ Registrar nueva unidad</h3>
+            <div>
+                <input type="text" id="placa" placeholder="Placa (ej: NEW-001)" style="width: 150px;">
+                <input type="text" id="modelo" placeholder="Modelo" style="width: 180px;">
+                <button class="btn-success" onclick="agregarUnidad()">Registrar unidad</button>
+            </div>
+            
+            <div id="map"></div>
+            <div id="lista-unidades"></div>
+        </div>
+    </div>
+
+    <script>
+        let token = '';
+        let map = null;
+        let markers = {};
+        let intervaloActualizacion = null;
+
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (!username || !password) {
+                document.getElementById('loginMensaje').innerText = 'Ingresa usuario y contraseña';
+                return;
+            }
+            
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok && data.token) {
+                    token = data.token;
+                    document.getElementById('login').style.display = 'none';
+                    document.getElementById('app').style.display = 'block';
+                    iniciarMapa();
+                    cargarUnidades();
+                    // Actualizar automáticamente cada 10 segundos
+                    if (intervaloActualizacion) clearInterval(intervaloActualizacion);
+                    intervaloActualizacion = setInterval(cargarUnidades, 10000);
+                } else {
+                    document.getElementById('loginMensaje').innerText = 'Error: ' + (data.error || 'Credenciales incorrectas');
+                }
+            } catch(e) {
+                document.getElementById('loginMensaje').innerText = 'Error de conexión al servidor';
+                console.error(e);
+            }
+        }
+
+        function cerrarSesion() {
+            if (intervaloActualizacion) clearInterval(intervaloActualizacion);
+            token = '';
+            if (map) { map.remove(); map = null; }
+            document.getElementById('app').style.display = 'none';
+            document.getElementById('login').style.display = 'block';
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+            document.getElementById('loginMensaje').innerText = '';
+        }
+
+        function iniciarMapa() {
+            if (map) map.remove();
+            map = L.map('map').setView([14.6349, -90.5069], 12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(map);
+        }
+
+        function centrarMapa() {
+            if (map) {
+                map.setView([14.6349, -90.5069], 12);
+            }
+        }
+
+        async function cargarUnidades() {
+            try {
+                const res = await fetch('/api/unidades');
+                const unidades = await res.json();
+                
+                // Limpiar marcadores
+                Object.values(markers).forEach(m => {
+                    if (map) map.removeLayer(m);
+                });
+                markers = {};
+                
+                // Actualizar lista y mapa
+                const listaDiv = document.getElementById('lista-unidades');
+                listaDiv.innerHTML = '<h3>📋 Unidades registradas (' + unidades.length + ')</h3>';
+                
+                unidades.forEach(u => {
+                    listaDiv.innerHTML += `<div class="unidad-card">
+                        🚐 <strong>${u.placa}</strong> - ${u.modelo} - ${u.estado}
+                        <br>📍 ${u.lat.toFixed(4)}, ${u.lng.toFixed(4)}
+                    </div>`;
+                    
+                    const marker = L.marker([u.lat, u.lng]).addTo(map);
+                    marker.bindPopup(`<b>${u.placa}</b><br>${u.modelo}<br>📍 ${u.lat.toFixed(4)}, ${u.lng.toFixed(4)}`);
+                    markers[u.id] = marker;
+                });
+            } catch(e) {
+                console.error('Error:', e);
+            }
+        }
+
+        async function agregarUnidad() {
+            const placa = document.getElementById('placa').value.trim();
+            const modelo = document.getElementById('modelo').value.trim();
+            
+            if (!placa || !modelo) {
+                alert('❌ Completa placa y modelo');
+                return;
+            }
+            
+            try {
+                const res = await fetch('/api/unidades', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ placa, modelo })
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok) {
+                    alert(`✅ Unidad ${placa} registrada exitosamente!\n📍 Ubicación asignada: ${data.lat.toFixed(4)}, ${data.lng.toFixed(4)}`);
+                    document.getElementById('placa').value = '';
+                    document.getElementById('modelo').value = '';
+                    cargarUnidades();
+                } else {
+                    alert('❌ Error: ' + data.error);
+                }
+            } catch(e) {
+                alert('❌ Error de conexión: ' + e.message);
+            }
+        }
+    </script>
+</body>
+</html>
