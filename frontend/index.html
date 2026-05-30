@@ -82,7 +82,6 @@
                     document.getElementById('app').style.display = 'block';
                     iniciarMapa();
                     cargarUnidades();
-                    // Actualizar automáticamente cada 10 segundos
                     if (intervaloActualizacion) clearInterval(intervaloActualizacion);
                     intervaloActualizacion = setInterval(cargarUnidades, 10000);
                 } else {
@@ -124,13 +123,11 @@
                 const res = await fetch('/api/unidades');
                 const unidades = await res.json();
                 
-                // Limpiar marcadores
                 Object.values(markers).forEach(m => {
                     if (map) map.removeLayer(m);
                 });
                 markers = {};
                 
-                // Actualizar lista y mapa
                 const listaDiv = document.getElementById('lista-unidades');
                 listaDiv.innerHTML = '<h3>📋 Unidades registradas (' + unidades.length + ')</h3>';
                 
