@@ -1,9 +1,7 @@
-// tests/unidades.test.js
-
 describe('Pruebas del Sistema de Control de Flota', () => {
     
     test('debe validar que una placa no esté vacía', () => {
-        // CORREGIDO: Ahora devuelve true/false, no el valor
+     
         function validarPlaca(placa) {
             if (!placa) return false;
             return placa.trim().length > 0;
@@ -15,7 +13,7 @@ describe('Pruebas del Sistema de Control de Flota', () => {
     });
     
     test('debe validar que un modelo no esté vacío', () => {
-        // CORREGIDO: Ahora devuelve true/false
+       
         function validarModelo(modelo) {
             if (!modelo) return false;
             return modelo.trim().length > 0;

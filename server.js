@@ -11,7 +11,7 @@ app.use(express.json());
 
 const db = new sqlite3.Database('./flota.db');
 
-// ===== FUNCIÓN PARA COORDENADAS ALEATORIAS =====
+//  COORDENADAS ALEATORIAS 
 function generarCoordenadasAleatorias() {
     const centroLat = 14.6349;
     const centroLng = -90.5069;
@@ -23,7 +23,7 @@ function generarCoordenadasAleatorias() {
     return { lat, lng };
 }
 
-// Crear tablas
+// Tablas
 db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS usuarios (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -52,7 +52,7 @@ db.serialize(() => {
     });
 });
 
-// ===== RUTAS DE LA API =====
+//  RUTAS
 
 // Login
 app.post('/api/login', (req, res) => {
@@ -67,7 +67,6 @@ app.post('/api/login', (req, res) => {
     });
 });
 
-// Obtener todas las unidades
 app.get('/api/unidades', (req, res) => {
     db.all("SELECT id, placa, modelo, estado, lat, lng FROM unidades", [], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -75,7 +74,6 @@ app.get('/api/unidades', (req, res) => {
     });
 });
 
-// Middleware para verificar token
 function verificarToken(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
@@ -87,7 +85,7 @@ function verificarToken(req, res, next) {
     });
 }
 
-// Crear nueva unidad
+// Crear unidad
 app.post('/api/unidades', verificarToken, (req, res) => {
     const { placa, modelo, estado } = req.body;
     
@@ -139,12 +137,7 @@ app.put('/api/unidades/:id/ubicacion', verificarToken, (req, res) => {
     res.json({ ok: true });
 });
 
-// ===== SERVIR EL FRONTEND =====
-// Servir archivos estáticos de la carpeta frontend
 app.use(express.static(path.join(__dirname, 'frontend')));
-
-// NOTA: No uses app.get('*') porque causa el error
-// Express ya sirve el index.html automáticamente con express.static
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

@@ -62,13 +62,22 @@ Esto hará que se ingrese a la base de datos nombrada flota.db
 
 
 
-Esto mostrara que se esta haciendo un test en el programa y los resultados correspondientes.
+Esto mostrara que se esta haciendo un test tanto en el archivo unidades.test como en el archivo intregacion.text y deben de ejecutarse correctamente.
 
 
 
+13\. En GitHub si se desea ver las pruebas del Pipeline CI/CD solo se debe abrir el repositorio y en la pestaña de Actions la prueba se ejecutara automáticamente.
 
 
 
+**Tecnologías usadas**
+
+* Frontend: HTML
+* Backend: JavaScript, Node.js
+* Test: JavaScript
+* Mapas: Leaflet
+* BD: SQLite
+* Herramienta DevOps: GitHub y GitHub Actions
 
 
 

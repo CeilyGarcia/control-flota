@@ -1,9 +1,5 @@
 const request = require('supertest');
 const express = require('express');
-
-// Creamos una versión SIMPLIFICADA de nuestra API para pruebas
-// (así no dependemos de la base de datos real)
-
 const app = express();
 app.use(express.json());
 
@@ -21,7 +17,6 @@ app.post('/api/login', (req, res) => {
     }
 });
 
-// Simular obtener unidades
 app.get('/api/unidades', (req, res) => {
     res.json([
         { id: 1, placa: 'ABC-123', modelo: 'Toyota', estado: 'activa', lat: 14.6349, lng: -90.5069 },
@@ -29,7 +24,6 @@ app.get('/api/unidades', (req, res) => {
     ]);
 });
 
-// Simular crear unidad (requiere token)
 app.post('/api/unidades', (req, res) => {
     const token = req.headers['authorization'];
     
@@ -57,7 +51,6 @@ app.post('/api/unidades', (req, res) => {
 
 describe('Pruebas de Integración - API de Control de Flota', () => {
     
-    // Prueba 1: Login exitoso
     test('POST /api/login - Debe retornar token con credenciales correctas', async () => {
         const response = await request(app)
             .post('/api/login')
@@ -68,7 +61,6 @@ describe('Pruebas de Integración - API de Control de Flota', () => {
         expect(response.body).toHaveProperty('rol', 'administrador');
     });
     
-    // Prueba 2: Login fallido
     test('POST /api/login - Debe fallar con contraseña incorrecta', async () => {
         const response = await request(app)
             .post('/api/login')
@@ -78,7 +70,6 @@ describe('Pruebas de Integración - API de Control de Flota', () => {
         expect(response.body).toHaveProperty('error');
     });
     
-    // Prueba 3: Obtener unidades
     test('GET /api/unidades - Debe retornar lista de unidades', async () => {
         const response = await request(app).get('/api/unidades');
         
@@ -88,7 +79,6 @@ describe('Pruebas de Integración - API de Control de Flota', () => {
         expect(response.body[0]).toHaveProperty('placa');
     });
     
-    // Prueba 4: Crear unidad con token
     test('POST /api/unidades - Debe crear unidad con token válido', async () => {
         const response = await request(app)
             .post('/api/unidades')
@@ -100,7 +90,6 @@ describe('Pruebas de Integración - API de Control de Flota', () => {
         expect(response.body.mensaje).toContain('exitosa');
     });
     
-    // Prueba 5: Crear unidad sin token (debe fallar)
     test('POST /api/unidades - Debe fallar sin token de autenticación', async () => {
         const response = await request(app)
             .post('/api/unidades')
@@ -110,7 +99,6 @@ describe('Pruebas de Integración - API de Control de Flota', () => {
         expect(response.body).toHaveProperty('error');
     });
     
-    // Prueba 6: Crear unidad sin placa (debe fallar)
     test('POST /api/unidades - Debe fallar sin placa', async () => {
         const response = await request(app)
             .post('/api/unidades')
