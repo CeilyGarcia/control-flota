@@ -136,6 +136,7 @@ app.put('/api/unidades/:id/ubicacion', verificarToken, (req, res) => {
     db.run("UPDATE unidades SET lat = ?, lng = ? WHERE id = ?", [lat, lng, req.params.id]);
     res.json({ ok: true });
 });
+//esta es una prueba
 
 app.use(express.static(path.join(__dirname, 'frontend')));
 
