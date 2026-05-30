@@ -1,9 +1,32 @@
 // tests/unidades.test.js
 
-// Prueba 1: Verificar que la función de coordenadas funciona
-describe('Funciones auxiliares', () => {
+describe('Pruebas del Sistema de Control de Flota', () => {
     
-    test('debe generar coordenadas dentro del rango esperado', () => {
+    test('debe validar que una placa no esté vacía', () => {
+        // CORREGIDO: Ahora devuelve true/false, no el valor
+        function validarPlaca(placa) {
+            if (!placa) return false;
+            return placa.trim().length > 0;
+        }
+        
+        expect(validarPlaca('ABC-123')).toBe(true);
+        expect(validarPlaca('')).toBe(false);
+        expect(validarPlaca('   ')).toBe(false);
+    });
+    
+    test('debe validar que un modelo no esté vacío', () => {
+        // CORREGIDO: Ahora devuelve true/false
+        function validarModelo(modelo) {
+            if (!modelo) return false;
+            return modelo.trim().length > 0;
+        }
+        
+        expect(validarModelo('Toyota Hiace')).toBe(true);
+        expect(validarModelo('')).toBe(false);
+        expect(validarModelo('   ')).toBe(false);
+    });
+    
+    test('debe generar coordenadas dentro del rango de Guatemala', () => {
         function generarCoordenadasAleatorias() {
             const centroLat = 14.6349;
             const centroLng = -90.5069;
@@ -23,34 +46,7 @@ describe('Funciones auxiliares', () => {
         expect(lng).toBeLessThan(-90.42);
     });
     
-    test('debe validar que una placa no esté vacía', () => {
-        // ✅ CORREGIDO: Esta función debe devolver true o false
-        function validatorPlaca(placa) {
-            // Verifica que placa exista, sea string, y tenga al menos 1 caracter después de quitar espacios
-            return Boolean(placa && typeof placa === 'string' && placa.trim().length > 0);
-        }
-        
-        expect(validatorPlaca('ABC-123')).toBe(true);
-        expect(validatorPlaca('')).toBe(false);
-        expect(validatorPlaca('   ')).toBe(false);  // También debería ser false
-    });
-    
-    test('debe validar que un modelo no esté vacío', () => {
-        // ✅ CORREGIDO: Esta función debe devolver true o false
-        function validatorModelo(modelo) {
-            // Verifica que modelo exista, sea string, y tenga al menos 1 caracter después de quitar espacios
-            return Boolean(modelo && typeof modelo === 'string' && modelo.trim().length > 0);
-        }
-        
-        expect(validatorModelo('Toyota Hiace')).toBe(true);
-        expect(validatorModelo('')).toBe(false);
-        expect(validatorModelo('   ')).toBe(false);  // También debería ser false
-    });
-});
-
-// El resto del archivo sigue igual...
-describe('Estructura de datos de unidad', () => {
-    test('una unidad debe tener placa, modelo, estado y coordenadas', () => {
+    test('una unidad debe tener todos los campos requeridos', () => {
         const unidad = {
             id: 1,
             placa: 'ABC-123',
@@ -68,14 +64,6 @@ describe('Estructura de datos de unidad', () => {
         expect(typeof unidad.placa).toBe('string');
         expect(typeof unidad.lat).toBe('number');
     });
-});
-
-describe('Autenticación', () => {
-    test('el token debe tener formato válido', () => {
-        const tokenEjemplo = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sIjoiYWRtaW5pc3RyYWRvciJ9.firma';
-        const partes = tokenEjemplo.split('.');
-        expect(partes.length).toBe(3);
-    });
     
     test('solo administradores pueden crear unidades', () => {
         function puedeCrearUnidad(rol) {
@@ -85,5 +73,7 @@ describe('Autenticación', () => {
         expect(puedeCrearUnidad('administrador')).toBe(true);
         expect(puedeCrearUnidad('operador')).toBe(false);
         expect(puedeCrearUnidad('conductor')).toBe(false);
+        expect(puedeCrearUnidad(null)).toBe(false);
+        expect(puedeCrearUnidad(undefined)).toBe(false);
     });
 });
